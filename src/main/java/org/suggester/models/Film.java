@@ -2,71 +2,50 @@ package org.suggester.models;
 
 import java.net.URL;
 
-public class Film {
-    private URL image;
-    private String title;
-    private int year;
-    private String country;
-    private String genre;
-    private URL link;
+public class Film implements Comparable<Film> {
+    private final URL image;
+    private final String title;
+    private final String originalTitle;
+    private final int year;
+    private final String country;
+    private final String genre;
+    private final URL link;
+    private final Rating rating;
+
+    public Film(URL image, String title, String originalTitle, int year, String country, String genre, URL link, Rating rating) {
+        this.image = image;
+        this.title = title;
+        this.originalTitle = originalTitle;
+        this.year = year;
+        this.country = country;
+        this.genre = genre;
+        this.link = link;
+        this.rating = rating;
+    }
 
     @Override
     public String toString() {
         return "Film{" +
                "image=" + image +
                ", title='" + title + '\'' +
+               ", originalTitle='" + originalTitle + '\'' +
                ", year=" + year +
                ", country='" + country + '\'' +
                ", genre='" + genre + '\'' +
-               ", link=" + link +
+               ", link=" + link + '\'' +
+               ", rating=" + rating + '\'' +
                '}';
     }
 
-    public URL getImage() {
-        return image;
-    }
+    @Override
+    public int compareTo(Film o) {
+        if (o.rating == null) {
+            return -1;
+        }
+        if (this.rating == null) {
+            return 1;
+        }
 
-    public void setImage(URL image) {
-        this.image = image;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getGenre() {
-        return genre;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-
-    public URL getLink() {
-        return link;
-    }
-
-    public void setLink(URL link) {
-        this.link = link;
+        return Float.compare(o.rating.getGrade(), this.rating.getGrade());
     }
 }
