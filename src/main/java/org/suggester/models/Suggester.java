@@ -6,6 +6,7 @@ import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import org.suggester.ratingStrategies.WeightedAverageStrategy;
+import org.suggester.util.Config;
 import org.suggester.util.FilmComparator;
 import org.w3c.dom.Attr;
 
@@ -18,10 +19,9 @@ import java.util.Set;
 
 public class Suggester {
     private final String hdrezka = "https://hdrezka.website/page/%d/?filter=last&genre=1";
-    private final Set<String> countriesWhiteList = new HashSet<>(List.of("CША", "Великобритания", "Канада",
-            "Германия", "Франция", "Италия", "Украина"));
-    private int startYear = 2020;
-    private int endYear = 0;
+    private final Set<String> countriesWhitelist;
+    private int startYear;
+    private int endYear;
     private int page = 1;
 
     public List<Film> parse() throws IOException {
@@ -81,6 +81,13 @@ public class Suggester {
     }
 
     private boolean isWatchable(String[] description) {
-        return countriesWhiteList.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
+        return countriesWhitelist.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
+    }
+
+    public Suggester() {
+        Config config = Config.get();
+        countriesWhitelist = new HashSet<>(List.of(Config.get().getProperty("countriesWhitelist").split(",")));
+        startYear = Integer.parseInt(Config.get().getProperty("startYear"));
+        endYear = Integer.parseInt(Config.get().getProperty("endYear"));
     }
 }
