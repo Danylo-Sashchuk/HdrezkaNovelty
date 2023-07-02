@@ -5,11 +5,16 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
+import org.suggester.ratingStrategies.WeightedAverageStrategy;
+import org.suggester.util.FilmComparator;
 import org.w3c.dom.Attr;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Suggester {
     private final String hdrezka = "https://hdrezka.website/page/%d/?filter=last&genre=1";
@@ -36,8 +41,9 @@ public class Suggester {
                                                                  "/text()")
                                 .get(0)).getWholeText();
                         HtmlPage moviePage = client.getPage(link);
-                        Rating rating = getRating(link, moviePage);
-                        String originalTitle = ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle\"]/text()")
+                        Rating rating = getRating(moviePage);
+                        String originalTitle = ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" +
+                                                                               "\"]/text()")
                                 .get(0)).getWholeText();
                         Film film = new Film(image, title, originalTitle, Integer.parseInt(description[0]),
                                 description[1].trim(), description[2].trim(), link, rating);
@@ -47,12 +53,12 @@ public class Suggester {
                     }
                 }
             }
-            Collections.sort(watchableFilms);
+            watchableFilms.sort(new FilmComparator(new WeightedAverageStrategy()));
             return watchableFilms;
         }
     }
 
-    private Rating getRating(URL link, HtmlPage page) {
+    private Rating getRating(HtmlPage page) {
         List<Object> byXPath = page.getByXPath("//span[@class=\"b-post__info_rates imdb\"]");
         if (byXPath.isEmpty()) {
             return null;
@@ -77,5 +83,4 @@ public class Suggester {
     private boolean isWatchable(String[] description) {
         return countriesWhiteList.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
     }
-
 }

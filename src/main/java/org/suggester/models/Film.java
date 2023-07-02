@@ -2,7 +2,7 @@ package org.suggester.models;
 
 import java.net.URL;
 
-public class Film implements Comparable<Film> {
+public class Film {
     private final URL image;
     private final String title;
     private final String originalTitle;
@@ -12,7 +12,8 @@ public class Film implements Comparable<Film> {
     private final URL link;
     private final Rating rating;
 
-    public Film(URL image, String title, String originalTitle, int year, String country, String genre, URL link, Rating rating) {
+    public Film(URL image, String title, String originalTitle, int year, String country, String genre, URL link,
+                Rating rating) {
         this.image = image;
         this.title = title;
         this.originalTitle = originalTitle;
@@ -21,6 +22,10 @@ public class Film implements Comparable<Film> {
         this.genre = genre;
         this.link = link;
         this.rating = rating;
+    }
+
+    public Rating getRating() {
+        return rating;
     }
 
     @Override
@@ -37,15 +42,31 @@ public class Film implements Comparable<Film> {
                '}';
     }
 
-    @Override
-    public int compareTo(Film o) {
-        if (o.rating == null) {
-            return -1;
-        }
-        if (this.rating == null) {
-            return 1;
-        }
+    public URL getImage() {
+        return image;
+    }
 
-        return Float.compare(o.rating.getGrade(), this.rating.getGrade());
+    public String getTitle() {
+        return title;
+    }
+
+    public String getOriginalTitle() {
+        return originalTitle;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public URL getLink() {
+        return link;
     }
 }
