@@ -21,15 +21,20 @@ public class Suggester {
     private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
     private final String hdrezka = "https://hdrezka.website/page/%d/?filter=last&genre=1";
     private final Set<String> countriesWhitelist;
-    private int startYear;
-    private int endYear;
-    private int page = 1;
+    private final int startYear;
+    private final int startPage;
+    private final int endPage;
+    private final int endYear;
     private FilmComparator filmComparator;
 
-    public Suggester() {
+    public Suggester(Set<String> countriesWhitelist, int startYear, int endYear, int startPage, int endPage,
+                     FilmComparator filmComparator) {
+
         countriesWhitelist = new HashSet<>(List.of(Config.get().getProperty("countriesWhitelist").split(",")));
         startYear = Integer.parseInt(Config.get().getProperty("startYear"));
         endYear = Integer.parseInt(Config.get().getProperty("endYear"));
+        startPage = Integer.parseInt(Config.get().getProperty("startPage"));
+        endPage = Integer.parseInt(Config.get().getProperty("endPage"));
         LOG.log(Level.INFO, "Created Suggester");
         filmComparator = new FilmComparator(new WeightedAverageStrategy());
     }
@@ -40,16 +45,20 @@ public class Suggester {
 
     public List<Film> parse() throws IOException {
         try (WebClient client = new WebClient()) {
-            String website = String.format(hdrezka, page);
             setupClient(client);
-            HtmlPage page = client.getPage(website);
-            LOG.info("Getting all films' div");
-            List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
             List<Film> watchableFilms = new ArrayList<>();
-            for (DomElement div : allFilms) {
-                String[] description = getDescription(div);
-                LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
-                if (isWatchable(description)) {
+            int currentPage = startPage;
+            while (currentPage <= endPage) {
+                LOG.info("Parsing website's page " + currentPage);
+                String website = String.format(hdrezka, currentPage);
+                HtmlPage page = client.getPage(website);
+                List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
+                for (DomElement div : allFilms) {
+                    String[] description = getDescription(div);
+                    LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
+                    if (!isWatchable(description)) {
+                        continue;
+                    }
                     try {
                         URL image = getUrl(div, "./div/a/img/@src");
                         URL link = getUrl(div, "./div/a/@href");
@@ -68,6 +77,7 @@ public class Suggester {
                         System.out.println("Film parsing is interrupted, skip this film.");
                     }
                 }
+                currentPage++;
             }
             LOG.info("Sorting films");
             watchableFilms.sort(filmComparator);
