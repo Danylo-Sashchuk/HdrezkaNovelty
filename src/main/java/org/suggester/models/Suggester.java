@@ -11,51 +11,84 @@ import org.suggester.util.FilmComparator;
 import org.w3c.dom.Attr;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Suggester {
+    private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
     private final String hdrezka = "https://hdrezka.website/page/%d/?filter=last&genre=1";
     private final Set<String> countriesWhitelist;
     private int startYear;
     private int endYear;
     private int page = 1;
+    private FilmComparator filmComparator;
+
+    public Suggester() {
+        countriesWhitelist = new HashSet<>(List.of(Config.get().getProperty("countriesWhitelist").split(",")));
+        startYear = Integer.parseInt(Config.get().getProperty("startYear"));
+        endYear = Integer.parseInt(Config.get().getProperty("endYear"));
+        LOG.log(Level.INFO, "Created Suggester");
+        filmComparator = new FilmComparator(new WeightedAverageStrategy());
+    }
+
+    public void setFilmComparator(FilmComparator filmComparator) {
+        this.filmComparator = filmComparator;
+    }
 
     public List<Film> parse() throws IOException {
         try (WebClient client = new WebClient()) {
             String website = String.format(hdrezka, page);
             setupClient(client);
             HtmlPage page = client.getPage(website);
+            LOG.info("Getting all films' div");
             List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
             List<Film> watchableFilms = new ArrayList<>();
             for (DomElement div : allFilms) {
                 String[] description = getDescription(div);
+                LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
                 if (isWatchable(description)) {
                     try {
-                        URL image = new URL(((Attr) div.getByXPath("./div/a/img/@src").get(0)).getValue());
-                        URL link = new URL(((Attr) div.getByXPath("./div/a/@href").get(0)).getValue());
-                        String title = ((DomText) div.getByXPath("./div[@class=\"b-content__inline_item-link\"]/a" +
-                                                                 "/text()")
-                                .get(0)).getWholeText();
+                        URL image = getUrl(div, "./div/a/img/@src");
+                        URL link = getUrl(div, "./div/a/@href");
+                        String title = getTitle(div);
+
+                        LOG.info("Jumping to %s page".formatted(title));
                         HtmlPage moviePage = client.getPage(link);
                         Rating rating = getRating(moviePage);
-                        String originalTitle = ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" +
-                                                                               "\"]/text()")
-                                .get(0)).getWholeText();
+                        String originalTitle = getOriginalTitle(moviePage);
+                        LOG.info("Creating %s film".formatted(title));
                         Film film = new Film(image, title, originalTitle, Integer.parseInt(description[0]),
                                 description[1].trim(), description[2].trim(), link, rating);
                         watchableFilms.add(film);
                     } catch (RuntimeException e) {
+                        LOG.severe("Parsing interrupted. " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
                         System.out.println("Film parsing is interrupted, skip this film.");
                     }
                 }
             }
-            watchableFilms.sort(new FilmComparator(new WeightedAverageStrategy()));
+            LOG.info("Sorting films");
+            watchableFilms.sort(filmComparator);
             return watchableFilms;
         }
+    }
+
+    private String getTitle(DomElement div) {
+        return ((DomText) div.getByXPath("./div[@class=\"b-content__inline_item-link\"]/a" +
+                                         "/text()")
+                .get(0)).getWholeText();
+    }
+
+    private String getOriginalTitle(HtmlPage moviePage) {
+        return ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" +
+                                               "\"]/text()")
+                .get(0)).getWholeText();
+    }
+
+    private URL getUrl(DomElement div, String xpathExpr) throws MalformedURLException {
+        return new URL(((Attr) div.getByXPath(xpathExpr).get(0)).getValue());
     }
 
     private Rating getRating(HtmlPage page) {
@@ -82,12 +115,5 @@ public class Suggester {
 
     private boolean isWatchable(String[] description) {
         return countriesWhitelist.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
-    }
-
-    public Suggester() {
-        Config config = Config.get();
-        countriesWhitelist = new HashSet<>(List.of(Config.get().getProperty("countriesWhitelist").split(",")));
-        startYear = Integer.parseInt(Config.get().getProperty("startYear"));
-        endYear = Integer.parseInt(Config.get().getProperty("endYear"));
     }
 }
