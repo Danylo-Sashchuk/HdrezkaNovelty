@@ -39,3 +39,4 @@ build/
 /.idea/
 /src/main/resources/logs/
 /logs/
+/src/test/resources/

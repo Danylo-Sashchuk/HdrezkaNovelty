@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class Config {
     private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
     private static final File DEFAULT_CONFIG_FILE =
-            new File(System.getProperty("user.dir") + "/src/main/resources/defaultSuggester.properties");
+            new File(System.getProperty("user.dir") + "/src/test/resources/webmap.properties");
     private static final Config INSTANCE = new Config();
     private final Properties prop = new Properties();
 
@@ -22,7 +22,7 @@ public class Config {
         try (InputStream input = new FileInputStream(DEFAULT_CONFIG_FILE)) {
             prop.load(input);
         } catch (IOException e) {
-            LOG.severe("Properties has not been read\n" + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            LOG.severe("Properties has not been read\n" + e.getCause() + "\n"+ e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new RuntimeException("Properties has not been read", e);
         }
     }
