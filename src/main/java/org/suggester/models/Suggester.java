@@ -27,19 +27,18 @@ public class Suggester {
     private final int endYear;
     private FilmComparator filmComparator;
 
-    public Suggester(Set<String> countriesWhitelist, int startYear, int endYear, int startPage, int endPage,
-                     FilmComparator filmComparator) {
-
-        countriesWhitelist = new HashSet<>(List.of(Config.get().getProperty("countriesWhitelist").split(",")));
-        startYear = Integer.parseInt(Config.get().getProperty("startYear"));
-        endYear = Integer.parseInt(Config.get().getProperty("endYear"));
-        startPage = Integer.parseInt(Config.get().getProperty("startPage"));
-        endPage = Integer.parseInt(Config.get().getProperty("endPage"));
-        LOG.log(Level.INFO, "Created Suggester");
-        filmComparator = new FilmComparator(new WeightedAverageStrategy());
+    private Suggester(SuggesterBuilder builder) {
+        LOG.log(Level.INFO, "Creating Suggester");
+        this.countriesWhitelist = builder.countriesWhitelist;
+        this.startYear = builder.startYear;
+        this.endYear = builder.endYear;
+        this.startPage = builder.startPage;
+        this.endPage = builder.endPage;
+        this.filmComparator = builder.filmComparator;
+        LOG.log(Level.INFO, "Suggester is created");
     }
 
-    public void setFilmComparator(FilmComparator filmComparator) {
+    public void changeFilmComparator(FilmComparator filmComparator) {
         this.filmComparator = filmComparator;
     }
 
@@ -86,14 +85,12 @@ public class Suggester {
     }
 
     private String getTitle(DomElement div) {
-        return ((DomText) div.getByXPath("./div[@class=\"b-content__inline_item-link\"]/a" +
-                                         "/text()")
+        return ((DomText) div.getByXPath("./div[@class=\"b-content__inline_item-link\"]/a" + "/text()")
                 .get(0)).getWholeText();
     }
 
     private String getOriginalTitle(HtmlPage moviePage) {
-        return ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" +
-                                               "\"]/text()")
+        return ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" + "\"]/text()")
                 .get(0)).getWholeText();
     }
 
@@ -125,5 +122,57 @@ public class Suggester {
 
     private boolean isWatchable(String[] description) {
         return countriesWhitelist.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
+    }
+
+    public static class SuggesterBuilder {
+        private final Config config = Config.get();
+        private final float weightedAverageRatingWeight = Float.parseFloat(config.getProperty(
+                "weightedAverageRatingWeight"));
+        private final float weightedAverageVotesWeight = Float.parseFloat(config.getProperty(
+                "weightedAverageVotesWeight"));
+        private FilmComparator filmComparator =
+                new FilmComparator(new WeightedAverageStrategy(weightedAverageRatingWeight,
+                        weightedAverageVotesWeight));
+        private Set<String> countriesWhitelist = new HashSet<>(List.of(Config.get()
+                .getProperty("countriesWhitelist")
+                .split(",")));
+        private int startYear = Integer.parseInt(config.getProperty("startYear"));
+        private int endYear = Integer.parseInt(config.getProperty("endYear"));
+        private int startPage = Integer.parseInt(config.getProperty("startPage"));
+        private int endPage = Integer.parseInt(config.getProperty("endPage"));
+
+        public SuggesterBuilder countriesWhitelist(Set<String> countriesWhitelist) {
+            this.countriesWhitelist = countriesWhitelist;
+            return this;
+        }
+
+        public SuggesterBuilder startYear(int startYear) {
+            this.startYear = startYear;
+            return this;
+        }
+
+        public SuggesterBuilder endYear(int endYear) {
+            this.endYear = endYear;
+            return this;
+        }
+
+        public SuggesterBuilder startPage(int startPage) {
+            this.startPage = startPage;
+            return this;
+        }
+
+        public SuggesterBuilder endPage(int endPage) {
+            this.endPage = endPage;
+            return this;
+        }
+
+        public SuggesterBuilder filmComparator(FilmComparator filmComparator) {
+            this.filmComparator = filmComparator;
+            return this;
+        }
+
+        public Suggester build() {
+            return new Suggester(this);
+        }
     }
 }

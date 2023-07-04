@@ -3,8 +3,13 @@ package org.suggester.ratingStrategies;
 import org.suggester.models.Film;
 
 public class WeightedAverageStrategy implements RatingStrategy {
-    private static final float ratingWeight = 0.3f;
-    private static final float countWeight = 0.7f;
+    private final float ratingWeight;
+    private final float countWeight;
+
+    public WeightedAverageStrategy(float ratingWeight, float countWeight) {
+        this.ratingWeight = ratingWeight;
+        this.countWeight = countWeight;
+    }
 
     @Override
     public float getRating(Film film) {
