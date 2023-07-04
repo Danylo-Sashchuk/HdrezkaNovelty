@@ -70,7 +70,7 @@ public class FileSuggester {
                         String movie = config.getProperty(URLEncoder.encode(String.valueOf(link),
                                 StandardCharsets.UTF_8));
                         HtmlPage moviePage =
-                                client.getPage("file:" + "src/test/resources/" + movie);
+                                client.getPage("file:src/test/resources/" + movie);
                         Rating rating = getRating(moviePage);
                         String originalTitle = getOriginalTitle(moviePage);
                         LOG.info("Creating %s film".formatted(title));

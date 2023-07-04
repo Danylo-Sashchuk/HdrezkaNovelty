@@ -1,30 +1,28 @@
 package org.suggester;
 
+import org.suggester.models.FileWebSource;
 import org.suggester.models.Film;
 import org.suggester.models.Suggester;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Properties;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        Properties prop = new Properties();
-        try (InputStream input = new FileInputStream(new File(System.getProperty("user.dir") + "/src/test/resources/webmap.properties"))) {
-            prop.load(input);
-        } catch (IOException e) {
-            //LOG.severe("Properties has not been read\n" + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-            throw new RuntimeException("Properties has not been read", e);
+    public static void main(String[] args) throws MalformedURLException {
+        //        Suggester suggester = new Suggester.SuggesterBuilder(new LiveWebSource(new URL("https://hdrezka" +
+        //                                                                                       "
+        //                                                                                       .website/page/%d/?filter=last" +
+        //                                                                                       "&genre=1"
+        //        ))).endPage(2).build();
+        //        for (Film film : suggester.parse()) {
+        //            System.out.println(film);
+        //        }
+
+        Suggester suggester = new Suggester.SuggesterBuilder(new FileWebSource("src/test/resources/webmap.properties"
+                , new URL("https://hdrezka.website/page/%d/?filter=last&genre=1"))).endPage(2)
+                .build();
+        for (Film film : suggester.parse()) {
+            System.out.println(film);
         }
-        for (String key : prop.stringPropertyNames()) {
-            System.out.println(key + " = " + prop.getProperty(key));
-        }
-//        Suggester suggester = new Suggester.SuggesterBuilder().endPage(2).build();
-//        for (Film film : suggester.parse()) {
-//            System.out.println(film);
-//        }
     }
 }

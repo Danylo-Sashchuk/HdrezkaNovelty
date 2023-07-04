@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class Config {
     private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
     private static final File DEFAULT_CONFIG_FILE =
-            new File(System.getProperty("user.dir") + "/src/test/resources/webmap.properties");
+            new File("src/main/resources/defaultSuggester.properties");
     private static final Config INSTANCE = new Config();
     private final Properties prop = new Properties();
 

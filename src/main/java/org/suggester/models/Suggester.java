@@ -19,12 +19,12 @@ import java.util.logging.Logger;
 
 public class Suggester {
     private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
-    private final String hdrezka = "https://hdrezka.website/page/%d/?filter=last&genre=1";
     private final Set<String> countriesWhitelist;
     private final int startYear;
     private final int startPage;
     private final int endPage;
     private final int endYear;
+    private final WebSource webSource;
     private FilmComparator filmComparator;
 
     private Suggester(SuggesterBuilder builder) {
@@ -35,6 +35,7 @@ public class Suggester {
         this.startPage = builder.startPage;
         this.endPage = builder.endPage;
         this.filmComparator = builder.filmComparator;
+        this.webSource = builder.webSource;
         LOG.log(Level.INFO, "Suggester is created");
     }
 
@@ -42,14 +43,14 @@ public class Suggester {
         this.filmComparator = filmComparator;
     }
 
-    public List<Film> parse() throws IOException {
+    public List<Film> parse() {
         try (WebClient client = new WebClient()) {
             setupClient(client);
             List<Film> watchableFilms = new ArrayList<>();
             int currentPage = startPage;
             while (currentPage <= endPage) {
                 LOG.info("Parsing website's page " + currentPage);
-                String website = String.format(hdrezka, currentPage);
+                String website = String.format(webSource.getMainPage().toString(), currentPage);
                 HtmlPage page = client.getPage(website);
                 List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
                 for (DomElement div : allFilms) {
@@ -60,7 +61,7 @@ public class Suggester {
                     }
                     try {
                         URL image = getUrl(div, "./div/a/img/@src");
-                        URL link = getUrl(div, "./div/a/@href");
+                        URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
                         String title = getTitle(div);
 
                         LOG.info("Jumping to %s page".formatted(title));
@@ -81,6 +82,9 @@ public class Suggester {
             LOG.info("Sorting films");
             watchableFilms.sort(filmComparator);
             return watchableFilms;
+        } catch (IOException e) {
+            LOG.severe(e.toString());
+            throw new RuntimeException(e);
         }
     }
 
@@ -140,6 +144,11 @@ public class Suggester {
         private int endYear = Integer.parseInt(config.getProperty("endYear"));
         private int startPage = Integer.parseInt(config.getProperty("startPage"));
         private int endPage = Integer.parseInt(config.getProperty("endPage"));
+        private WebSource webSource;
+
+        public SuggesterBuilder(WebSource webSource) {
+            this.webSource = webSource;
+        }
 
         public SuggesterBuilder countriesWhitelist(Set<String> countriesWhitelist) {
             this.countriesWhitelist = countriesWhitelist;
@@ -173,6 +182,11 @@ public class Suggester {
 
         public Suggester build() {
             return new Suggester(this);
+        }
+
+        public SuggesterBuilder webSource(WebSource webSource) {
+            this.webSource = webSource;
+            return this;
         }
     }
 }
