@@ -1,5 +1,8 @@
 package org.suggester.models;
 
+import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.annotation.Testable;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 

@@ -6,7 +6,7 @@ import org.suggester.util.TestFilmCreator;
 
 import java.util.List;
 
-public abstract class AbstractSuggesterTest {
+public class AbstractSuggesterTest {
     protected final Suggester suggester;
 
     public AbstractSuggesterTest(Suggester suggester) {
@@ -14,7 +14,7 @@ public abstract class AbstractSuggesterTest {
     }
 
     @Test
-    void parse_WithDefaultConfig() {
+    public void parse_WithDefaultConfig() {
         List<Film> films = suggester.parse();
         Assertions.assertThat(films).isEqualTo(TestFilmCreator.defaultFilmOutput);
     }
