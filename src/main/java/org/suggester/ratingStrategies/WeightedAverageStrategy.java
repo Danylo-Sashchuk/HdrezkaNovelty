@@ -13,6 +13,6 @@ public class WeightedAverageStrategy implements RatingStrategy {
 
     @Override
     public float getRating(Film film) {
-        return film.getRating().getRating() * ratingWeight + film.getRating().getCount() * countWeight;
+        return film.getRating().rating() * ratingWeight + film.getRating().count() * countWeight;
     }
 }

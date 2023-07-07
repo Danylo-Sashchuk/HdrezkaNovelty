@@ -7,7 +7,7 @@ public class ConsolePrinter {
         System.out.println(film.getTitle());
         System.out.println(film.getGenre() + ", " + film.getCountry() + ", " + film.getYear());
         if (film.getRating() != null) {
-            System.out.println(film.getRating().getRating() + " : " + film.getRating().getCount());
+            System.out.println(film.getRating().rating() + " : " + film.getRating().count());
         }
         System.out.println(film.getLink());
         System.out.println("--------------------");

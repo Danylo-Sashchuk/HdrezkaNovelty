@@ -20,12 +20,12 @@ public class Main {
 //                    ConsolePrinter.print(film);
 //                }
 
-        Suggester suggester1 = new Suggester.SuggesterBuilder(
-                new FileWebSource("src/test/resources/webmap.properties",
-                        new URL("file:src/test/resources/%d/main_page.html")))
-                .build();
-        for (Film film : suggester1.parse()) {
-            ConsolePrinter.printForCreation(film);
-        }
+//        Suggester suggester1 = new Suggester.SuggesterBuilder(
+//                new FileWebSource("src/test/resources/webmap.properties",
+//                        new URL("file:src/test/resources/%d/main_page.html")))
+//                .build();
+//        for (Film film : suggester1.parse()) {
+//            ConsolePrinter.printForCreation(film);
+//        }
     }
 }
