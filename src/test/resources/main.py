@@ -54,5 +54,5 @@ if __name__ == '__main__':
 
     text = ''
     for key in properties:
-        text += urllib.parse.quote(key) + '=' + properties[key] + '\n'
+        text += urllib.parse.quote(key, safe='') + '=' + properties[key] + '\n'
     save(text, "webmap.properties")
