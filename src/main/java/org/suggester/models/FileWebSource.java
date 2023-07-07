@@ -10,19 +10,19 @@ import java.util.Properties;
 public class FileWebSource extends WebSource {
     Properties map = new Properties();
 
-    public FileWebSource(String mapLocation, URL page) {
+    public FileWebSource(String mapLocation, URL mainPage) {
         try (InputStream input = new FileInputStream(mapLocation)) {
             map.load(input);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.mainPage = page;
+        this.mainPage = mainPage;
     }
 
     @Override
     URL getPage(URL url) throws MalformedURLException {
-        String link = map.getProperty(URLEncoder.encode(String.valueOf(url),
+        String path = map.getProperty(URLEncoder.encode(String.valueOf(url),
                 StandardCharsets.UTF_8));
-        return new URL("file:src/test/resources/" + link);
+        return new URL("file:src/test/resources/" + path);
     }
 }

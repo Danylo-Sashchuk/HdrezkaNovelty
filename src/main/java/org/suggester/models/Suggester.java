@@ -21,10 +21,11 @@ public class Suggester {
     private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
     private final Set<String> countriesWhitelist;
     private final int startYear;
+    private final int endYear;
     private final int startPage;
     private final int endPage;
-    private final int endYear;
     private final WebSource webSource;
+    private final List<Film> watchableFilms = new ArrayList<>();
     private FilmComparator filmComparator;
 
     private Suggester(SuggesterBuilder builder) {
@@ -46,45 +47,60 @@ public class Suggester {
     public List<Film> parse() {
         try (WebClient client = new WebClient()) {
             setupClient(client);
-            List<Film> watchableFilms = new ArrayList<>();
             int currentPage = startPage;
             while (currentPage <= endPage) {
-                LOG.info("Parsing website's page " + currentPage);
-                String website = String.format(webSource.getMainPage().toString(), currentPage);
-                HtmlPage page = client.getPage(website);
-                List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
-                for (DomElement div : allFilms) {
-                    String[] description = getDescription(div);
-                    LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
-                    if (!isWatchable(description)) {
-                        continue;
-                    }
-                    try {
-                        URL image = getUrl(div, "./div/a/img/@src");
-                        URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
-                        String title = getTitle(div);
-
-                        LOG.info("Jumping to %s page".formatted(title));
-                        HtmlPage moviePage = client.getPage(link);
-                        Rating rating = getRating(moviePage);
-                        String originalTitle = getOriginalTitle(moviePage);
-                        LOG.info("Creating %s film".formatted(title));
-                        Film film = new Film(image, title, originalTitle, Integer.parseInt(description[0]),
-                                description[1].trim(), description[2].trim(), link, rating);
-                        watchableFilms.add(film);
-                    } catch (RuntimeException e) {
-                        LOG.severe("Parsing interrupted. " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-                        System.out.println("Film parsing is interrupted, skip this film.");
-                    }
-                }
+                parsePage(client, currentPage);
                 currentPage++;
             }
             LOG.info("Sorting films");
             watchableFilms.sort(filmComparator);
             return watchableFilms;
         } catch (IOException e) {
-            LOG.severe(e.toString());
+            LOG.severe("Severe error, parsing cannot be continued." + e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void parsePage(WebClient client, int currentPage) throws IOException {
+        LOG.info("Parsing website's page " + currentPage);
+        String website = String.format(webSource.getMainPage().toString(), currentPage);
+        try {
+            HtmlPage page = client.getPage(website);
+            List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
+            for (DomElement div : allFilms) {
+                parseFilm(client, div);
+            }
+        } catch (IOException e) {
+            LOG.severe("Error with " + currentPage + " page. Skipping the page.");
+        }
+    }
+
+    private void parseFilm(WebClient client, DomElement div) throws IOException {
+        String[] description = getDescription(div);
+        if (description.length < 3) {
+            LOG.info("Movie does not have enough information to be taken into consideration.");
+            return;
+        }
+        LOG.info("Parsing: %s, %s, %s " .formatted(description[0], description[1], description[2]));
+        if (!isWatchable(description)) {
+            return;
+        }
+        try {
+            URL image = getUrl(div, "./div/a/img/@src");
+            URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
+            String title = getTitle(div);
+
+            LOG.info("Jumping to %s page" .formatted(title));
+            HtmlPage moviePage = client.getPage(link);
+            Rating rating = getRating(moviePage);
+            String originalTitle = getOriginalTitle(moviePage);
+            LOG.info("Creating %s film" .formatted(title));
+            Film film = new Film(image, title, originalTitle, Integer.parseInt(description[0]),
+                    description[1].trim(), description[2].trim(), link, rating);
+            watchableFilms.add(film);
+        } catch (RuntimeException e) {
+            LOG.severe("Parsing interrupted. " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            System.out.println("Film parsing is interrupted, skip this film.");
         }
     }
 
@@ -125,7 +141,9 @@ public class Suggester {
     }
 
     private boolean isWatchable(String[] description) {
-        return countriesWhitelist.contains(description[1].trim()) && Integer.parseInt(description[0]) >= startYear;
+        int year = Integer.parseInt(description[0]);
+        String country = description[1].trim();
+        return countriesWhitelist.contains(country) && year >= startYear && year <= endYear;
     }
 
     public static class SuggesterBuilder {
@@ -181,6 +199,16 @@ public class Suggester {
         }
 
         public Suggester build() {
+            if (endYear < startYear) {
+                LOG.severe("Suggester cannot be created. End year for searching is less than start year");
+                throw new
+                        RuntimeException("Suggester cannot be created. End year for searching is less than start year");
+            }
+            if (endPage < startPage) {
+                LOG.severe("Suggester cannot be created. End page for parsing is less than start page");
+                throw new
+                        RuntimeException("Suggester cannot be created. End page for parsing is less than start page");
+            }
             return new Suggester(this);
         }
 
