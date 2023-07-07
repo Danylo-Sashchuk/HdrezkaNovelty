@@ -1,5 +1,8 @@
 package org.suggester.models;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.net.URL;
 
 public class Film {
@@ -68,5 +71,37 @@ public class Film {
 
     public URL getLink() {
         return link;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        Film film = (Film) o;
+
+        return new EqualsBuilder().append(year, film.year)
+                .append(image, film.image)
+                .append(title, film.title)
+                .append(originalTitle, film.originalTitle)
+                .append(country, film.country)
+                .append(genre, film.genre)
+                .append(link, film.link)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(image)
+                .append(title)
+                .append(originalTitle)
+                .append(year)
+                .append(country)
+                .append(genre)
+                .append(link)
+                .toHashCode();
     }
 }

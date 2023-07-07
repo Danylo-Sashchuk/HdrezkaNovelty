@@ -202,12 +202,12 @@ public class Suggester {
             if (endYear < startYear) {
                 LOG.severe("Suggester cannot be created. End year for searching is less than start year");
                 throw new
-                        RuntimeException("Suggester cannot be created. End year for searching is less than start year");
+                        IllegalArgumentException("Suggester cannot be created. End year for searching is less than start year");
             }
             if (endPage < startPage) {
                 LOG.severe("Suggester cannot be created. End page for parsing is less than start page");
                 throw new
-                        RuntimeException("Suggester cannot be created. End page for parsing is less than start page");
+                        IllegalArgumentException("Suggester cannot be created. End page for parsing is less than start page");
             }
             return new Suggester(this);
         }
@@ -218,3 +218,4 @@ public class Suggester {
         }
     }
 }
+

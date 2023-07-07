@@ -34,6 +34,6 @@ public class FilmComparator implements Comparator<Film> {
         if (!hashedGrades.containsKey(o2.getLink())) {
             hashedGrades.put(o2.getLink(), ratingStrategy.getRating(o2));
         }
-        return Float.compare(hashedGrades.get(o1.getLink()), hashedGrades.get(o2.getLink()));
+        return Float.compare(hashedGrades.get(o2.getLink()), hashedGrades.get(o1.getLink()));
     }
 }
