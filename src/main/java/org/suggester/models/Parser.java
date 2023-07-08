@@ -17,8 +17,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Suggester {
-    private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
+public class Parser {
+    private static final Logger LOG = Logger.getLogger(Parser.class.getName());
     private final Set<String> countriesWhitelist;
     private final int startYear;
     private final int endYear;
@@ -28,8 +28,8 @@ public class Suggester {
     private final List<Film> watchableFilms = new ArrayList<>();
     private FilmComparator filmComparator;
 
-    private Suggester(SuggesterBuilder builder) {
-        LOG.log(Level.INFO, "Creating Suggester");
+    private Parser(SuggesterBuilder builder) {
+        LOG.log(Level.INFO, "Creating Parser");
         this.countriesWhitelist = builder.countriesWhitelist;
         this.startYear = builder.startYear;
         this.endYear = builder.endYear;
@@ -37,7 +37,7 @@ public class Suggester {
         this.endPage = builder.endPage;
         this.filmComparator = builder.filmComparator;
         this.webSource = builder.webSource;
-        LOG.log(Level.INFO, "Suggester is created");
+        LOG.log(Level.INFO, "Parser is created");
     }
 
     public void changeFilmComparator(FilmComparator filmComparator) {
@@ -198,18 +198,18 @@ public class Suggester {
             return this;
         }
 
-        public Suggester build() {
+        public Parser build() {
             if (endYear < startYear) {
-                LOG.severe("Suggester cannot be created. End year for searching is less than start year");
+                LOG.severe("Parser cannot be created. End year for searching is less than start year");
                 throw new
-                        IllegalArgumentException("Suggester cannot be created. End year for searching is less than start year");
+                        IllegalArgumentException("Parser cannot be created. End year for searching is less than start year");
             }
             if (endPage < startPage) {
-                LOG.severe("Suggester cannot be created. End page for parsing is less than start page");
+                LOG.severe("Parser cannot be created. End page for parsing is less than start page");
                 throw new
-                        IllegalArgumentException("Suggester cannot be created. End page for parsing is less than start page");
+                        IllegalArgumentException("Parser cannot be created. End page for parsing is less than start page");
             }
-            return new Suggester(this);
+            return new Parser(this);
         }
 
         public SuggesterBuilder webSource(WebSource webSource) {

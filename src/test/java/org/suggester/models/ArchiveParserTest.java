@@ -1,15 +1,12 @@
 package org.suggester.models;
 
-import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.annotation.Testable;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class ArchiveSuggesterTest extends AbstractSuggesterTest {
+public class ArchiveParserTest extends AbstractParserTest {
 
-    public ArchiveSuggesterTest() throws MalformedURLException {
-        super(new Suggester.SuggesterBuilder(
+    public ArchiveParserTest() throws MalformedURLException {
+        super(new Parser.SuggesterBuilder(
                 new FileWebSource("src/test/resources/webmap.properties",
                         new URL("file:src/test/resources/%d/main_page.html"))).build()
         );

@@ -1,6 +1,6 @@
 package org.suggester.util;
 
-import org.suggester.models.Suggester;
+import org.suggester.models.Parser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 public class Config {
-    private static final Logger LOG = Logger.getLogger(Suggester.class.getName());
+    private static final Logger LOG = Logger.getLogger(Parser.class.getName());
     private static final File DEFAULT_CONFIG_FILE =
             new File("src/main/resources/defaultSuggester.properties");
     private static final Config INSTANCE = new Config();

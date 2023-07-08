@@ -6,16 +6,16 @@ import org.suggester.util.TestFilmCreator;
 
 import java.util.List;
 
-public class AbstractSuggesterTest {
-    protected final Suggester suggester;
+public abstract class AbstractParserTest {
+    public final Parser parser;
 
-    public AbstractSuggesterTest(Suggester suggester) {
-        this.suggester = suggester;
+    public AbstractParserTest(Parser parser) {
+        this.parser = parser;
     }
 
     @Test
     public void parse_WithDefaultConfig() {
-        List<Film> films = suggester.parse();
+        List<Film> films = parser.parse();
         Assertions.assertThat(films).isEqualTo(TestFilmCreator.defaultFilmOutput);
     }
 }
