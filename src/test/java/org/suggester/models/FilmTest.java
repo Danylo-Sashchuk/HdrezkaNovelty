@@ -5,20 +5,32 @@ import org.junit.jupiter.api.Test;
 import org.suggester.models.Film;
 import org.suggester.util.TestFilmCreator;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class FilmTest {
-    static private final Film film = TestFilmCreator.defaultFilmOutput.get(0);
+    static private final Film film1 = TestFilmCreator.defaultFilmOutput.get(0);
+    static private final Film film2 = TestFilmCreator.defaultFilmOutput.get(1);;
+    static private final Film film3 = TestFilmCreator.defaultFilmOutput.get(2);;
+
 
     @Test
     public void testToString() {
-        Assertions.assertThat(film.toString())
+        Assertions.assertThat(film1.toString())
                 .isEqualTo("Film{image=https://static.hdrezka.ac/i/2023/6/30/o279ba432def0ps78v52k.jpg, title='Italian Best Shorts 6: Дом, милый дом', originalTitle='Italian Best Shorts 6', year=2023, country='Италия', genre='Драмы', link=file:src/test/resources/3/film24.html', rating=null'}");
     }
 
     @Test
-    void testEquals() {
-    }
+    void testHashCode() throws MalformedURLException {
+        URL image = new URL(film1.getImage().toString());
+        String title = new String(film1.getTitle());
+        String originalTitle = new String(film1.getOriginalTitle());
+        int year = film1.getYear();
+        String country = new String(film1.getCountry());
+        String genre = new String(film1.getGenre());
+        URL link = new URL(film1.getLink().toString());
 
-    @Test
-    void testHashCode() {
+        Film equalFilm = new Film(image, title, originalTitle, year, country, genre, link, null);
+        Assertions.assertThat(film1.hashCode()).isEqualTo(equalFilm.hashCode());
     }
 }
