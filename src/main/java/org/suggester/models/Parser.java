@@ -4,7 +4,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlSpan;
+import org.suggester.conc.ScrapperThread;
 import org.suggester.ratingStrategies.WeightedAverageStrategy;
 import org.suggester.util.Config;
 import org.suggester.util.FilmComparator;
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,8 +26,9 @@ public class Parser {
     private final int startPage;
     private final int endPage;
     private final WebSource webSource;
-    private final List<Film> watchableFilms = new ArrayList<>();
     private FilmComparator filmComparator;
+    private final ConcurrentLinkedDeque<Film> watchableFilms = new ConcurrentLinkedDeque<>();
+    private final List<Thread> threads = new ArrayList<>();
 
     private Parser(SuggesterBuilder builder) {
         LOG.log(Level.INFO, "Creating Parser");
@@ -52,9 +54,17 @@ public class Parser {
                 parsePage(client, currentPage);
                 currentPage++;
             }
+            for (Thread thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             LOG.info("Sorting films");
-            watchableFilms.sort(filmComparator);
-            return watchableFilms;
+            List<Film> result = new ArrayList<>(watchableFilms);
+            result.sort(filmComparator);
+            return result;
         } catch (IOException e) {
             LOG.severe("Severe error, parsing cannot be continued." + e);
             throw new RuntimeException(e);
@@ -67,37 +77,41 @@ public class Parser {
         try {
             HtmlPage page = client.getPage(website);
             List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
+            int counter = 0;
+            List<Film> unfinishedFilms = new ArrayList<>();
             for (DomElement div : allFilms) {
-                parseFilm(client, div);
+                String[] description = getDescription(div);
+                if (description.length < 3) {
+                    LOG.info("Movie does not have enough information to be taken into consideration.");
+                    return;
+                }
+                LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
+                if (!isWatchable(description)) {
+                    continue;
+                }
+                URL image = getUrl(div, "./div/a/img/@src");
+                URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
+                String title = getTitle(div);
+                Film newFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
+                        description[2].trim(), link);
+                counter++;
+                unfinishedFilms.add(newFilm);
+                if (counter == 5) {
+                    parseFilms(unfinishedFilms);
+                    counter = 0;
+                    unfinishedFilms.clear();
+                }
             }
         } catch (IOException e) {
             LOG.severe("Error with " + currentPage + " page. Skipping the page.");
         }
     }
 
-    private void parseFilm(WebClient client, DomElement div) throws IOException {
-        String[] description = getDescription(div);
-        if (description.length < 3) {
-            LOG.info("Movie does not have enough information to be taken into consideration.");
-            return;
-        }
-        LOG.info("Parsing: %s, %s, %s " .formatted(description[0], description[1], description[2]));
-        if (!isWatchable(description)) {
-            return;
-        }
+    private void parseFilms(List<Film> unfinishedFilms) throws IOException {
         try {
-            URL image = getUrl(div, "./div/a/img/@src");
-            URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
-            String title = getTitle(div);
-
-            LOG.info("Jumping to %s page" .formatted(title));
-            HtmlPage moviePage = client.getPage(link);
-            Rating rating = getRating(moviePage);
-            String originalTitle = getOriginalTitle(moviePage);
-            LOG.info("Creating %s film" .formatted(title));
-            Film film = new Film(image, title, originalTitle, Integer.parseInt(description[0]),
-                    description[1].trim(), description[2].trim(), link, rating);
-            watchableFilms.add(film);
+            Thread thread = new Thread(new ScrapperThread(unfinishedFilms, watchableFilms));
+            threads.add(thread);
+            thread.start();
         } catch (RuntimeException e) {
             LOG.severe("Parsing interrupted. " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             System.out.println("Film parsing is interrupted, skip this film.");
@@ -109,25 +123,8 @@ public class Parser {
                 .get(0)).getWholeText();
     }
 
-    private String getOriginalTitle(HtmlPage moviePage) {
-        return ((DomText) moviePage.getByXPath("//div[@class=\"b-post__origtitle" + "\"]/text()")
-                .get(0)).getWholeText();
-    }
-
     private URL getUrl(DomElement div, String xpathExpr) throws MalformedURLException {
         return new URL(((Attr) div.getByXPath(xpathExpr).get(0)).getValue());
-    }
-
-    private Rating getRating(HtmlPage page) {
-        List<Object> byXPath = page.getByXPath("//span[@class=\"b-post__info_rates imdb\"]");
-        if (byXPath.isEmpty()) {
-            return null;
-        }
-        HtmlSpan ratingRow = (HtmlSpan) byXPath.get(0);
-        float rating = Float.parseFloat(((DomText) ratingRow.getByXPath("./span/text()").get(0)).getWholeText());
-        String count = ((DomText) ratingRow.getByXPath("./i/text()").get(0)).getWholeText();
-        int votes = Integer.parseInt(count.substring(1, count.length() - 1).replaceAll("\\s+", ""));
-        return new Rating(rating, votes);
     }
 
     private String[] getDescription(DomElement div) {
@@ -202,12 +199,14 @@ public class Parser {
             if (endYear < startYear) {
                 LOG.severe("Parser cannot be created. End year for searching is less than start year");
                 throw new
-                        IllegalArgumentException("Parser cannot be created. End year for searching is less than start year");
+                        IllegalArgumentException("Parser cannot be created. End year for searching is less than start" +
+                                                 " year");
             }
             if (endPage < startPage) {
                 LOG.severe("Parser cannot be created. End page for parsing is less than start page");
                 throw new
-                        IllegalArgumentException("Parser cannot be created. End page for parsing is less than start page");
+                        IllegalArgumentException("Parser cannot be created. End page for parsing is less than start " +
+                                                 "page");
             }
             return new Parser(this);
         }

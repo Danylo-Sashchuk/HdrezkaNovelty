@@ -8,12 +8,12 @@ import java.net.URL;
 public class Film {
     private final URL image;
     private final String title;
-    private final String originalTitle;
     private final int year;
     private final String country;
     private final String genre;
     private final URL link;
-    private final Rating rating;
+    private String originalTitle;
+    private Rating rating;
 
     public Film(URL image, String title, String originalTitle, int year, String country, String genre, URL link,
                 Rating rating) {
@@ -27,8 +27,21 @@ public class Film {
         this.rating = rating;
     }
 
+    public Film(URL image, String title, int year, String country, String genre, URL link) {
+        this.image = image;
+        this.title = title;
+        this.year = year;
+        this.country = country;
+        this.genre = genre;
+        this.link = link;
+    }
+
     public Rating getRating() {
         return rating;
+    }
+
+    public void setRating(Rating rating) {
+        this.rating = rating;
     }
 
     @Override
@@ -55,6 +68,10 @@ public class Film {
 
     public String getOriginalTitle() {
         return originalTitle;
+    }
+
+    public void setOriginalTitle(String originalTitle) {
+        this.originalTitle = originalTitle;
     }
 
     public int getYear() {
