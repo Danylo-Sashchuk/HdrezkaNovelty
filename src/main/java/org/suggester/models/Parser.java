@@ -96,11 +96,11 @@ public class Parser {
                         description[2].trim(), link);
                 counter++;
                 unfinishedFilms.add(newFilm);
-                if (counter == 5) {
+//                if (counter == 5) {
                     parseFilms(unfinishedFilms);
-                    counter = 0;
+//                    counter = 0;
                     unfinishedFilms.clear();
-                }
+//                }
             }
         } catch (IOException e) {
             LOG.severe("Error with " + currentPage + " page. Skipping the page.");
