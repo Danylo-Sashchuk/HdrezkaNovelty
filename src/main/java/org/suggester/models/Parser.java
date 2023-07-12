@@ -27,9 +27,9 @@ public class Parser {
     private final int startPage;
     private final int endPage;
     private final WebSource webSource;
-    private FilmComparator filmComparator;
     private final ConcurrentLinkedDeque<Film> watchableFilms = new ConcurrentLinkedDeque<>();
     private final List<Thread> threads = new ArrayList<>();
+    private FilmComparator filmComparator;
 
     private Parser(SuggesterBuilder builder) {
         LOG.log(Level.INFO, "Creating Parser");
@@ -50,10 +50,8 @@ public class Parser {
     public List<Film> parse() {
         try (WebClient client = new WebClient()) {
             WebHelper.setClientSettings(client);
-            int currentPage = startPage;
-            while (currentPage <= endPage) {
-                parsePage(client, currentPage);
-                currentPage++;
+            for (int i = startPage; i <= endPage; i++) {
+                parsePage(client, i);
             }
             for (Thread thread : threads) {
                 try {
@@ -78,39 +76,35 @@ public class Parser {
         try {
             HtmlPage page = client.getPage(website);
             List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
-            int counter = 0;
-            List<Film> unfinishedFilms = new ArrayList<>();
             for (DomElement div : allFilms) {
-                String[] description = getDescription(div);
-                if (description.length < 3) {
-                    LOG.info("Movie does not have enough information to be taken into consideration.");
-                    return;
-                }
-                LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
-                if (!isWatchable(description)) {
-                    continue;
-                }
-                URL image = getUrl(div, "./div/a/img/@src");
-                URL link = webSource.getPage(getUrl(div, "./div/a/@href"));
-                String title = getTitle(div);
-                Film newFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
-                        description[2].trim(), link);
-                counter++;
-                unfinishedFilms.add(newFilm);
-//                if (counter == 5) {
-                    parseFilms(unfinishedFilms);
-//                    counter = 0;
-                    unfinishedFilms.clear();
-//                }
+                parseFilm(div);
             }
         } catch (IOException e) {
             LOG.severe("Error with " + currentPage + " page. Skipping the page.");
         }
     }
 
-    private void parseFilms(List<Film> unfinishedFilms) throws IOException {
+    private void parseFilm(DomElement div) throws IOException {
+        String[] description = getDescription(div);
+        if (description.length < 3) {
+            LOG.info("Movie does not have enough information to be taken into consideration.");
+            return;
+        }
+        LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
+        if (!isWatchable(description)) {
+            return;
+        }
+        URL image = getImageUrl(div);
+        URL link = webSource.getPage(getMovieUrl(div));
+        String title = getTitle(div);
+        Film rawFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
+                description[2].trim(), link);
+        composeFilm(rawFilm);
+    }
+
+    private void composeFilm(Film rawFilm) {
         try {
-            Thread thread = new Thread(new ScrapperThread(unfinishedFilms, watchableFilms));
+            Thread thread = new Thread(new ScrapperThread(rawFilm, watchableFilms));
             threads.add(thread);
             thread.start();
         } catch (RuntimeException e) {
@@ -122,6 +116,14 @@ public class Parser {
     private String getTitle(DomElement div) {
         return ((DomText) div.getByXPath("./div[@class=\"b-content__inline_item-link\"]/a" + "/text()")
                 .get(0)).getWholeText();
+    }
+
+    private URL getImageUrl(DomElement div) throws MalformedURLException {
+        return getUrl(div, "./div/a/img/@src");
+    }
+
+    private URL getMovieUrl(DomElement div) throws MalformedURLException {
+        return getUrl(div, "./div/a/@href");
     }
 
     private URL getUrl(DomElement div, String xpathExpr) throws MalformedURLException {

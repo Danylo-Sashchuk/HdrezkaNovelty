@@ -9,19 +9,18 @@ import org.suggester.models.Rating;
 import org.suggester.util.WebHelper;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
 public class ScrapperThread implements Runnable {
     private static final Logger LOG = Logger.getLogger(ScrapperThread.class.getName());
-    private final List<Film> films;
-    private final ConcurrentLinkedDeque<Film> endFilms;
+    private final ConcurrentLinkedDeque<Film> resultFilms;
+    private final Film film;
 
-    public ScrapperThread(List<Film> films, ConcurrentLinkedDeque<Film> endFilms) {
-        this.films = new ArrayList<>(films);
-        this.endFilms = endFilms;
+    public ScrapperThread(Film film, ConcurrentLinkedDeque<Film> resultFilms) {
+        this.resultFilms = resultFilms;
+        this.film = film;
     }
 
     @Override
@@ -29,9 +28,7 @@ public class ScrapperThread implements Runnable {
         try (WebClient client = new WebClient()) {
             LOG.info("Created a new thread.");
             WebHelper.setClientSettings(client);
-            for (Film film : films) {
-                createFilm(client, film);
-            }
+            createFilm(client, film);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -44,7 +41,7 @@ public class ScrapperThread implements Runnable {
         String originalTitle = getOriginalTitle(moviePage);
         film.setRating(rating);
         film.setOriginalTitle(originalTitle);
-        endFilms.add(film);
+        resultFilms.add(film);
     }
 
     private Rating getRating(HtmlPage page) {
