@@ -5,8 +5,8 @@ import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import org.suggester.models.Film;
-import org.suggester.models.Parser;
 import org.suggester.models.Rating;
+import org.suggester.util.WebHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class ScrapperThread implements Runnable {
     private static final Logger LOG = Logger.getLogger(ScrapperThread.class.getName());
     private final List<Film> films;
-    private ConcurrentLinkedDeque<Film> endFilms;
+    private final ConcurrentLinkedDeque<Film> endFilms;
 
     public ScrapperThread(List<Film> films, ConcurrentLinkedDeque<Film> endFilms) {
         this.films = new ArrayList<>(films);
@@ -28,8 +28,7 @@ public class ScrapperThread implements Runnable {
     public void run() {
         try (WebClient client = new WebClient()) {
             LOG.info("Created a new thread.");
-            client.getOptions().setCssEnabled(false);
-            client.getOptions().setJavaScriptEnabled(false);
+            WebHelper.setClientSettings(client);
             for (Film film : films) {
                 createFilm(client, film);
             }

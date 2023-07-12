@@ -8,6 +8,7 @@ import org.suggester.conc.ScrapperThread;
 import org.suggester.ratingStrategies.WeightedAverageStrategy;
 import org.suggester.util.Config;
 import org.suggester.util.FilmComparator;
+import org.suggester.util.WebHelper;
 import org.w3c.dom.Attr;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class Parser {
 
     public List<Film> parse() {
         try (WebClient client = new WebClient()) {
-            setupClient(client);
+            WebHelper.setClientSettings(client);
             int currentPage = startPage;
             while (currentPage <= endPage) {
                 parsePage(client, currentPage);
@@ -130,11 +131,6 @@ public class Parser {
     private String[] getDescription(DomElement div) {
         DomText domText = (DomText) div.getByXPath("./div[2]/div[1]/text()").get(0);
         return domText.getWholeText().split(",");
-    }
-
-    private void setupClient(WebClient client) {
-        client.getOptions().setCssEnabled(false);
-        client.getOptions().setJavaScriptEnabled(false);
     }
 
     private boolean isWatchable(String[] description) {
