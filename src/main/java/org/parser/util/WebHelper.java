@@ -1,4 +1,4 @@
-package org.suggester.util;
+package org.parser.util;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 

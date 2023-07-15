@@ -1,6 +1,6 @@
-package org.suggester.util;
+package org.parser.util;
 
-import org.suggester.models.Parser;
+import org.parser.models.Parser;
 
 import java.io.File;
 import java.io.FileInputStream;

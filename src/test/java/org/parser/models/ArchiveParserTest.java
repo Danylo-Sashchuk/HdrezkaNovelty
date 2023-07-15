@@ -1,4 +1,4 @@
-package org.suggester.models;
+package org.parser.models;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -6,7 +6,7 @@ import java.net.URL;
 public class ArchiveParserTest extends AbstractParserTest {
 
     public ArchiveParserTest() throws MalformedURLException {
-        super(new Parser.SuggesterBuilder(
+        super(new Parser.ParserBuilder(
                 new FileWebSource("src/test/resources/webmap.properties",
                         new URL("file:src/test/resources/%d/main_page.html"))).build()
         );

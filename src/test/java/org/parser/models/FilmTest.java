@@ -1,9 +1,8 @@
-package org.suggester.models;
+package org.parser.models;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.suggester.models.Film;
-import org.suggester.util.TestFilmCreator;
+import org.parser.util.TestFilmCreator;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -1,6 +1,6 @@
-package org.suggester.ratingStrategies;
+package org.parser.ratingStrategies;
 
-import org.suggester.models.Film;
+import org.parser.models.Film;
 
 public class WeightedAverageStrategy implements RatingStrategy {
     private final float ratingWeight;

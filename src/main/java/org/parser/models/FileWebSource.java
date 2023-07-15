@@ -1,4 +1,4 @@
-package org.suggester.models;
+package org.parser.models;
 
 import java.io.*;
 import java.net.MalformedURLException;

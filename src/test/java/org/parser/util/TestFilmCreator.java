@@ -1,6 +1,6 @@
-package org.suggester.util;
+package org.parser.util;
 
-import org.suggester.models.Film;
+import org.parser.models.Film;
 
 import java.net.MalformedURLException;
 import java.net.URL;

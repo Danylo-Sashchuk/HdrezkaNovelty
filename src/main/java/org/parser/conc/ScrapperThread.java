@@ -1,12 +1,12 @@
-package org.suggester.conc;
+package org.parser.conc;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
-import org.suggester.models.Film;
-import org.suggester.models.Rating;
-import org.suggester.util.WebHelper;
+import org.parser.models.Film;
+import org.parser.models.Rating;
+import org.parser.util.WebHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,9 +26,10 @@ public class ScrapperThread implements Runnable {
     @Override
     public void run() {
         try (WebClient client = new WebClient()) {
-            LOG.info("Created a new thread.");
+            LOG.info("Created a new thread for " + film.getTitle());
             WebHelper.setClientSettings(client);
             createFilm(client, film);
+            LOG.info("Thread finished for " + film.getTitle());
         } catch (IOException e) {
             e.printStackTrace();
         }

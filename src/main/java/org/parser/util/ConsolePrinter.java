@@ -1,6 +1,6 @@
-package org.suggester.util;
+package org.parser.util;
 
-import org.suggester.models.Film;
+import org.parser.models.Film;
 
 public class ConsolePrinter {
     public static void print(Film film) {

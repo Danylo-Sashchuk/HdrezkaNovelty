@@ -1,4 +1,4 @@
-package org.suggester.models;
+package org.parser.models;
 
 public class LiveSuggesterTest {
 }

@@ -1,4 +1,4 @@
-package org.suggester.models;
+package org.parser.models;
 
 import java.net.URL;
 

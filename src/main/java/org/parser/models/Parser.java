@@ -1,14 +1,14 @@
-package org.suggester.models;
+package org.parser.models;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomText;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import org.suggester.conc.ScrapperThread;
-import org.suggester.ratingStrategies.WeightedAverageStrategy;
-import org.suggester.util.Config;
-import org.suggester.util.FilmComparator;
-import org.suggester.util.WebHelper;
+import org.parser.conc.ScrapperThread;
+import org.parser.ratingStrategies.WeightedAverageStrategy;
+import org.parser.util.Config;
+import org.parser.util.FilmComparator;
+import org.parser.util.WebHelper;
 import org.w3c.dom.Attr;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class Parser {
     private final List<Thread> threads = new ArrayList<>();
     private FilmComparator filmComparator;
 
-    private Parser(SuggesterBuilder builder) {
+    private Parser(ParserBuilder builder) {
         LOG.log(Level.INFO, "Creating Parser");
         this.countriesWhitelist = builder.countriesWhitelist;
         this.startYear = builder.startYear;
@@ -53,13 +53,7 @@ public class Parser {
             for (int i = startPage; i <= endPage; i++) {
                 parsePage(client, i);
             }
-            for (Thread thread : threads) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            joinThreads();
             LOG.info("Sorting films");
             List<Film> result = new ArrayList<>(watchableFilms);
             result.sort(filmComparator);
@@ -67,6 +61,16 @@ public class Parser {
         } catch (IOException e) {
             LOG.severe("Severe error, parsing cannot be continued." + e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void joinThreads() {
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -123,6 +127,7 @@ public class Parser {
     }
 
     private URL getMovieUrl(DomElement div) throws MalformedURLException {
+        //language=XPath
         return getUrl(div, "./div/a/@href");
     }
 
@@ -141,7 +146,7 @@ public class Parser {
         return countriesWhitelist.contains(country) && year >= startYear && year <= endYear;
     }
 
-    public static class SuggesterBuilder {
+    public static class ParserBuilder {
         private final Config config = Config.get();
         private final float weightedAverageRatingWeight = Float.parseFloat(config.getProperty(
                 "weightedAverageRatingWeight"));
@@ -159,36 +164,36 @@ public class Parser {
         private int endPage = Integer.parseInt(config.getProperty("endPage"));
         private WebSource webSource;
 
-        public SuggesterBuilder(WebSource webSource) {
+        public ParserBuilder(WebSource webSource) {
             this.webSource = webSource;
         }
 
-        public SuggesterBuilder countriesWhitelist(Set<String> countriesWhitelist) {
+        public ParserBuilder countriesWhitelist(Set<String> countriesWhitelist) {
             this.countriesWhitelist = countriesWhitelist;
             return this;
         }
 
-        public SuggesterBuilder startYear(int startYear) {
+        public ParserBuilder startYear(int startYear) {
             this.startYear = startYear;
             return this;
         }
 
-        public SuggesterBuilder endYear(int endYear) {
+        public ParserBuilder endYear(int endYear) {
             this.endYear = endYear;
             return this;
         }
 
-        public SuggesterBuilder startPage(int startPage) {
+        public ParserBuilder startPage(int startPage) {
             this.startPage = startPage;
             return this;
         }
 
-        public SuggesterBuilder endPage(int endPage) {
+        public ParserBuilder endPage(int endPage) {
             this.endPage = endPage;
             return this;
         }
 
-        public SuggesterBuilder filmComparator(FilmComparator filmComparator) {
+        public ParserBuilder filmComparator(FilmComparator filmComparator) {
             this.filmComparator = filmComparator;
             return this;
         }
@@ -209,7 +214,7 @@ public class Parser {
             return new Parser(this);
         }
 
-        public SuggesterBuilder webSource(WebSource webSource) {
+        public ParserBuilder webSource(WebSource webSource) {
             this.webSource = webSource;
             return this;
         }

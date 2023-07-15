@@ -1,4 +1,4 @@
-package org.suggester.models;
+package org.parser.models;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

@@ -1,7 +1,7 @@
-package org.suggester.util;
+package org.parser.util;
 
-import org.suggester.models.Film;
-import org.suggester.ratingStrategies.RatingStrategy;
+import org.parser.models.Film;
+import org.parser.ratingStrategies.RatingStrategy;
 
 import java.net.URL;
 import java.util.Comparator;

@@ -1,8 +1,8 @@
-package org.suggester.models;
+package org.parser.models;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.suggester.util.TestFilmCreator;
+import org.parser.util.TestFilmCreator;
 
 import java.util.List;
 
