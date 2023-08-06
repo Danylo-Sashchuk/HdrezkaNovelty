@@ -23,10 +23,10 @@ public class FilmComparator implements Comparator<Film> {
     @Override
     public int compare(Film o1, Film o2) {
         if (o1.getRating() == null) {
-            return -1;
+            return 1;
         }
         if (o2.getRating() == null) {
-            return 1;
+            return -1;
         }
         if (!hashedGrades.containsKey(o1.getLink())) {
             hashedGrades.put(o1.getLink(), ratingStrategy.getRating(o1));
