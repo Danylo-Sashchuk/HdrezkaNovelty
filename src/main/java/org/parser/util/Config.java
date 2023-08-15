@@ -22,7 +22,7 @@ public class Config {
         try (InputStream input = new FileInputStream(DEFAULT_CONFIG_FILE)) {
             prop.load(input);
         } catch (IOException e) {
-            LOG.severe("Properties has not been read\n" + e.getCause() + "\n"+ e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            LOG.severe("Properties has not been read\n" + e.getCause() + "\n" + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new RuntimeException("Properties has not been read", e);
         }
     }

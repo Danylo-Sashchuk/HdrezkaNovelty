@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws MalformedURLException {
         Parser parser = new Parser.ParserBuilder(
                 new LiveWebSource(new URL("https://hdrezka.website/page/%d/?filter=last&genre=1")))
-                .endPage(2)
+                .endPage(6)
                 .build();
 
         for (Film film : parser.parse()) {

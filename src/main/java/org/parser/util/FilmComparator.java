@@ -8,8 +8,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 public class FilmComparator implements Comparator<Film> {
-    private RatingStrategy ratingStrategy;
     private final HashMap<URL, Float> hashedGrades = new HashMap<>();
+    private RatingStrategy ratingStrategy;
 
     public FilmComparator(RatingStrategy ratingStrategy) {
         this.ratingStrategy = ratingStrategy;
