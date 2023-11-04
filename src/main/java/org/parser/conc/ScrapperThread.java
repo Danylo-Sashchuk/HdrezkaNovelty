@@ -28,6 +28,9 @@ public class ScrapperThread implements Runnable {
         try (WebClient client = new WebClient()) {
             LOG.info("Created a new thread for " + film.getTitle());
             WebHelper.setClientSettings(client);
+            client.addRequestHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) " +
+                                                  "AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e" +
+                                                  " Safari/8536.25");
             createFilm(client, film);
             LOG.info("Thread finished for " + film.getTitle());
         } catch (IOException e) {

@@ -50,6 +50,9 @@ public class Parser {
     public List<Film> parse() {
         try (WebClient client = new WebClient()) {
             WebHelper.setClientSettings(client);
+            client.addRequestHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) " +
+                                                  "AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e" +
+                                                  " Safari/8536.25");
             for (int i = startPage; i <= endPage; i++) {
                 parsePage(client, i);
             }
@@ -78,10 +81,15 @@ public class Parser {
         LOG.info("Parsing website's page " + currentPage);
         String website = String.format(webSource.getMainPage().toString(), currentPage);
         try {
+
             HtmlPage page = client.getPage(website);
             List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
             for (DomElement div : allFilms) {
-                parseFilm(div);
+                try {
+                    parseFilm(div);
+                } catch (RuntimeException e) {
+                    LOG.severe("Error with film. Skipping the page.");
+                }
             }
         } catch (IOException e) {
             LOG.severe("Error with " + currentPage + " page. Skipping the page.");
