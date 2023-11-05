@@ -6,7 +6,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import org.parser.models.Film;
 import org.parser.models.Rating;
-import org.parser.util.WebHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,26 +15,28 @@ import java.util.logging.Logger;
 public class ScrapperThread implements Runnable {
     private static final Logger LOG = Logger.getLogger(ScrapperThread.class.getName());
     private final ConcurrentLinkedDeque<Film> resultFilms;
-    private final Film film;
+    private final List<Film> films;
+    private final WebClient client;
 
-    public ScrapperThread(Film film, ConcurrentLinkedDeque<Film> resultFilms) {
+    public ScrapperThread(List<Film> rawFilms, WebClient client, ConcurrentLinkedDeque<Film> resultFilms) {
         this.resultFilms = resultFilms;
-        this.film = film;
+        this.films = rawFilms;
+        this.client = client;
     }
 
     @Override
     public void run() {
-        try (WebClient client = new WebClient()) {
-            LOG.info("Created a new thread for " + film.getTitle());
-            WebHelper.setClientSettings(client);
-            client.addRequestHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) " +
-                                                  "AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e" +
-                                                  " Safari/8536.25");
-            createFilm(client, film);
-            LOG.info("Thread finished for " + film.getTitle());
-        } catch (IOException e) {
-            e.printStackTrace();
+        LOG.info("Creating a new thread for several films");
+        for (Film film : films) {
+            try {
+                LOG.info("Parsing film " + film.getTitle());
+                createFilm(client, film);
+            } catch (IOException e) {
+                LOG.severe("Error while parsing film " + film.getTitle());
+                throw new RuntimeException(e);
+            }
         }
+        LOG.info("Thread finished");
     }
 
     private void createFilm(WebClient client, Film film) throws IOException {

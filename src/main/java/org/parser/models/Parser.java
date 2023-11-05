@@ -81,14 +81,14 @@ public class Parser {
         LOG.info("Parsing website's page " + currentPage);
         String website = String.format(webSource.getMainPage().toString(), currentPage);
         try {
-
             HtmlPage page = client.getPage(website);
             List<DomElement> allFilms = page.getByXPath("//div[@class=\"b-content__inline_item\"]");
+            List<DomElement> tempStorage = new ArrayList<>();
             for (DomElement div : allFilms) {
-                try {
-                    parseFilm(div);
-                } catch (RuntimeException e) {
-                    LOG.severe("Error with film. Skipping the page.");
+                tempStorage.add(div);
+                if (tempStorage.size() == 10) {
+                    parseFilms(tempStorage, client);
+                    tempStorage.clear();
                 }
             }
         } catch (IOException e) {
@@ -96,27 +96,35 @@ public class Parser {
         }
     }
 
-    private void parseFilm(DomElement div) throws IOException {
-        String[] description = getDescription(div);
-        if (description.length < 3) {
-            LOG.info("Movie does not have enough information to be taken into consideration.");
-            return;
+    private void parseFilms(List<DomElement> tempStorage, WebClient client) {
+        List<Film> rawFilms = new ArrayList<>();
+        for (DomElement div : tempStorage) {
+            try {
+                String[] description = getDescription(div);
+                if (description.length < 3) {
+                    LOG.info("Movie does not have enough information to be taken into consideration.");
+                    continue;
+                }
+                LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
+                if (!isWatchable(description)) {
+                    continue;
+                }
+                URL image = getImageUrl(div);
+                URL link = webSource.getPage(getMovieUrl(div));
+                String title = getTitle(div);
+                Film rawFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
+                        description[2].trim(), link);
+                rawFilms.add(rawFilm);
+            } catch (RuntimeException | IOException e) {
+                LOG.severe("Error with film. Skipping the film.");
+            }
         }
-        LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
-        if (!isWatchable(description)) {
-            return;
-        }
-        URL image = getImageUrl(div);
-        URL link = webSource.getPage(getMovieUrl(div));
-        String title = getTitle(div);
-        Film rawFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
-                description[2].trim(), link);
-        composeFilm(rawFilm);
+        composeFilms(rawFilms, client);
     }
 
-    private void composeFilm(Film rawFilm) {
+    private void composeFilms(List<Film> rawFilms, WebClient client) {
         try {
-            Thread thread = new Thread(new ScrapperThread(rawFilm, watchableFilms));
+            Thread thread = new Thread(new ScrapperThread(rawFilms, client, watchableFilms));
             threads.add(thread);
             thread.start();
         } catch (RuntimeException e) {

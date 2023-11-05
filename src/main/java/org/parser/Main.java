@@ -14,7 +14,7 @@ public class Main {
         Parser parser = new Parser.ParserBuilder(
                 new LiveWebSource(new URL("https://hdrezka.website/page/%d/?filter=last&genre=1")))
 //                .startPage(12)
-                .endPage(5)
+                .endPage(10)
                 .build();
 
         for (Film film : parser.parse()) {
