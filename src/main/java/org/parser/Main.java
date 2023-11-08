@@ -13,20 +13,12 @@ public class Main {
     public static void main(String[] args) throws MalformedURLException {
         Parser parser = new Parser.ParserBuilder(
                 new LiveWebSource(new URL("https://hdrezka.website/page/%d/?filter=last&genre=1")))
-//                .startPage(12)
-                .endPage(10)
+//                .startPage(8)
+                .endPage(6)
                 .build();
 
         for (Film film : parser.parse()) {
             ConsolePrinter.print(film);
         }
-
-        //        Parser suggester1 = new Parser.ParserBuilder(
-        //                new FileWebSource("src/test/resources/webmap.properties",
-        //                        new URL("file:src/test/resources/%d/main_page.html")))
-        //                .build();
-        //        for (Film film : suggester1.parse()) {
-        //            ConsolePrinter.printForCreation(film);e
-        //        }
     }
 }

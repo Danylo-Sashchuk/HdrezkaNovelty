@@ -63,7 +63,8 @@ public class Parser {
             return result;
         } catch (IOException e) {
             LOG.severe("Severe error, parsing cannot be continued." + e);
-            throw new RuntimeException(e);
+            LOG.info("Returning parsed films");
+            return new ArrayList<>(watchableFilms);
         }
     }
 
@@ -90,6 +91,10 @@ public class Parser {
                     parseFilms(tempStorage, client);
                     tempStorage.clear();
                 }
+            }
+            if (!tempStorage.isEmpty()) {
+                parseFilms(tempStorage, client);
+                tempStorage.clear();
             }
         } catch (IOException e) {
             LOG.severe("Error with " + currentPage + " page. Skipping the page.");

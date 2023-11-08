@@ -26,17 +26,21 @@ public class ScrapperThread implements Runnable {
 
     @Override
     public void run() {
-        LOG.info("Creating a new thread for several films");
+        StringBuilder sb = new StringBuilder();
+        for (Film film : films) {
+            sb.append(film.getTitle()).append(", ");
+        }
+        LOG.info("Creating a new thread for films: " + sb);
         for (Film film : films) {
             try {
                 LOG.info("Parsing film " + film.getTitle());
                 createFilm(client, film);
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 LOG.severe("Error while parsing film " + film.getTitle());
                 throw new RuntimeException(e);
             }
         }
-        LOG.info("Thread finished");
+        LOG.info("Thread finished for films: " + sb);
     }
 
     private void createFilm(WebClient client, Film film) throws IOException {
