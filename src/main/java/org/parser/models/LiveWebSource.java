@@ -8,7 +8,7 @@ public class LiveWebSource extends WebSource {
     }
 
     @Override
-    URL getPage(URL url) {
+    URL getLink(URL url) {
         return url;
     }
 }

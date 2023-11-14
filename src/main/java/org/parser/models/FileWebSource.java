@@ -20,7 +20,7 @@ public class FileWebSource extends WebSource {
     }
 
     @Override
-    URL getPage(URL url) throws MalformedURLException {
+    URL getLink(URL url) throws MalformedURLException {
         String path = map.getProperty(URLEncoder.encode(String.valueOf(url),
                 StandardCharsets.UTF_8));
         return new URL("file:src/test/resources/" + path);
