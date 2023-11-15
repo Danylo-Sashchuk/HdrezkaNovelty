@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * 11/13/23
  */
 
-public class SequentialProcessor extends FilmProcessor {
+public class SequentialProcessor extends Processor {
     public SequentialProcessor(WebSource webSource) {
         super(webSource);
         result = new ArrayList<>();

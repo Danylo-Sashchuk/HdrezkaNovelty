@@ -3,7 +3,8 @@ package org.parser.models;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import org.parser.models.processors.FilmProcessor;
+import org.parser.models.processors.ConcurrentProcessor;
+import org.parser.models.processors.Processor;
 import org.parser.models.processors.SequentialProcessor;
 import org.parser.models.sources.WebSource;
 import org.parser.ratingStrategies.WeightedAverageStrategy;
@@ -27,7 +28,7 @@ public class Parser {
     private final int startPage;
     private final int endPage;
     private final WebSource webSource;
-    private FilmProcessor processor;
+    private Processor processor;
     private FilmComparator filmComparator;
 
     private Parser(ParserBuilder builder) {
@@ -51,11 +52,12 @@ public class Parser {
             webSource.setClient(client);
             webSource.configureClient();
             //todo where to initialize processor
-            processor = new SequentialProcessor(webSource);
+
+            processor = new ConcurrentProcessor(webSource);
             for (int i = startPage; i <= endPage; i++) {
                 List<Film> filmsOnPage = parsePage(i);
                 if (!filmsOnPage.isEmpty()) {
-                    processor.process(filmsOnPage);
+                    processor.process(new ArrayList<>(filmsOnPage));
                 }
             }
             processor.endProcessing();
@@ -73,15 +75,6 @@ public class Parser {
         }
     }
 
-//    private void joinThreads() {
-//        for (Thread thread : threads) {
-//            try {
-//                thread.join();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     private List<Film> parsePage(int currentPage) throws IOException {
         LOG.info("Parsing website's page " + currentPage);
@@ -110,13 +103,13 @@ public class Parser {
                 LOG.info("Movie does not have enough information to be taken into consideration.");
                 return null;
             }
-            LOG.info("Parsing: %s, %s, %s ".formatted(description[0], description[1], description[2]));
+            String title = webSource.getTitle(div);
+            LOG.info("Parsing: %s - %s, %s, %s ".formatted(title, description[0], description[1], description[2]));
             if (!isWatchable(description)) {
                 return null;
             }
             URL image = webSource.getImageUrl(div);
             URL link = webSource.getLink(webSource.getMovieUrl(div));
-            String title = webSource.getTitle(div);
             rawFilm = new Film(image, title, Integer.parseInt(description[0]), description[1].trim(),
                     description[2].trim(), link);
         } catch (RuntimeException | IOException e) {

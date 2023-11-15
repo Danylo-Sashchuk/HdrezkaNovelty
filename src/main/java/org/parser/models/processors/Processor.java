@@ -3,7 +3,6 @@ package org.parser.models.processors;
 import org.parser.models.Film;
 import org.parser.models.sources.WebSource;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -12,18 +11,17 @@ import java.util.logging.Logger;
  * 11/13/23
  */
 
-public abstract class FilmProcessor {
-    protected static final Logger LOG = Logger.getLogger(FilmProcessor.class.getName());
+public abstract class Processor {
+    protected static final Logger LOG = Logger.getLogger(Processor.class.getName());
     final protected WebSource webSource;
-    protected List<Film> result = new ArrayList<>();
+    protected List<Film> result;
 
-
-    public FilmProcessor(WebSource webSource) {
+    public Processor(WebSource webSource) {
         this.webSource = webSource;
     }
 
     public List<Film> getResult() {
-        return new ArrayList<>(result);
+        return result;
     }
 
     public void process(List<Film> films) {
