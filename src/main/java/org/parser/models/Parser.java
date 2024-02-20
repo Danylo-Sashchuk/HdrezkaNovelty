@@ -53,7 +53,7 @@ public class Parser {
             webSource.configureClient();
             //todo where to initialize processor
 
-            processor = new ConcurrentProcessor(webSource);
+            processor = new SequentialProcessor(webSource);
             for (int i = startPage; i <= endPage; i++) {
                 List<Film> filmsOnPage = parsePage(i);
                 if (!filmsOnPage.isEmpty()) {

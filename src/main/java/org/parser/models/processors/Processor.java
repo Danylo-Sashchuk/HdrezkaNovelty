@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 /**
  * @author Danylo Sashchuk <p>
  * 11/13/23
+ * <p></p>
+ * This class represents a processor that is used to process raw films from that are added.
  */
 
 public abstract class Processor {

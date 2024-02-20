@@ -32,7 +32,7 @@ public class ScrapperThread implements Runnable {
                 webSource.createFilm(film);
                 resultFilms.add(film);
             } catch (IOException | RuntimeException e) {
-                LOG.severe("Error while parsing film " + film.getTitle());
+                LOG.severe("Error while parsing film " + film.getTitle() + "; " + film.getLink());
                 throw new RuntimeException(e);
             }
         }

@@ -3,7 +3,6 @@ package org.parser.models.processors;
 import org.parser.models.Film;
 import org.parser.models.sources.WebSource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -28,10 +27,10 @@ public class SequentialProcessor extends Processor {
         LOG.info("Composing " + film.getTitle() + ".");
         try {
             webSource.createFilm(film);
-        } catch (IOException e) {
-            LOG.warning("Failed to create " + film.getTitle() + " film. Skipping.");
         } catch (IllegalStateException e) {
             LOG.warning("WebClient is not set. Abort the program.");
+        } catch (Exception e) {
+            LOG.warning("Failed to create " + film.getTitle() + ". " + film.getLink() + "Skipping.");
         }
     }
 }
