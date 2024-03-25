@@ -30,7 +30,7 @@ public class SequentialProcessor extends Processor {
         } catch (IllegalStateException e) {
             LOG.warning("WebClient is not set. Abort the program.");
         } catch (Exception e) {
-            LOG.warning("Failed to create " + film.getTitle() + ". " + film.getLink() + "Skipping.");
+            LOG.warning("Failed to create " + film.getTitle() + ". " + film.getLink() + " Skipping.");
         }
     }
 }
